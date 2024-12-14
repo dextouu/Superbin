@@ -1,24 +1,25 @@
-name: Auto-build Docker Image on Source Repo Update
+name: Build and Push Docker Image to GitHub Container Registry
 
 on:
-  schedule:
-    # Vérifie les mises à jour toutes les 6 heures
-    - cron: "0 */6 * * *"
-  workflow_dispatch: # Permet de lancer le workflow manuellement
+  push:
+    branches:
+      - main  # Déclenche le workflow pour les commits sur la branche main
+  workflow_dispatch:  # Permet de lancer manuellement le workflow
+
+permissions:
+  contents: write  # Nécessaire pour récupérer le dépôt
+  packages: write  # Nécessaire pour publier l'image sur GHCR
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
 
     steps:
-      # Étape 1 : Cloner le dépôt source
-      - name: Clone source repository
-        run: |
-          git clone https://github.com/Th0rum/SuperBin.git source-repo
-          cd source-repo
-          git fetch --tags
+      # Étape 1 : Récupérer le dépôt
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      # Étape 2 : Connexion à GHCR (registre GitHub Container Registry)
+      # Étape 2 : Connexion à GitHub Container Registry
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v2
         with:
@@ -26,13 +27,12 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_PAT }}
 
-      # Étape 3 : Construire l'image Docker depuis le dépôt source
+      # Étape 3 : Construire l'image Docker
       - name: Build Docker image
         run: |
-          cd source-repo
-          docker build -t ghcr.io/${{ github.repository_owner }}/superbin:latest .
+          docker build -t ghcr.io/dextouu/superbin:latest .
 
       # Étape 4 : Pousser l'image vers GHCR
       - name: Push Docker image
         run: |
-          docker push ghcr.io/${{ github.repository_owner }}/superbin:latest
+          docker push ghcr.io/dextouu/superbin:latest
