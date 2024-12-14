@@ -1,38 +1,42 @@
-name: Build and Push Docker Image to GitHub Container Registry
+name: Auto-build Docker Image on Source Repo Update
 
 on:
-  push:
-    branches:
-      - main  # Déclenche le workflow pour les commits sur la branche main
-  workflow_dispatch:  # Permet de lancer manuellement le workflow
+  schedule:
+    # Vérifie les mises à jour toutes les 6 heures
+    - cron: "0 */6 * * *"
+  workflow_dispatch: # Permet de lancer le workflow manuellement
 
 permissions:
-  contents: write  # Nécessaire pour récupérer le dépôt
-  packages: write  # Nécessaire pour publier l'image sur GHCR
+  contents: write  # Permet de lire et écrire dans le dépôt
+  packages: write  # Permet de créer et mettre à jour des packages (images Docker)
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
 
     steps:
-      # Étape 1 : Récupérer le dépôt
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      # Étape 1 : Cloner le dépôt source
+      - name: Clone source repository
+        run: |
+          git clone https://github.com/Th0rum/SuperBin.git source-repo
+          cd source-repo
+          git fetch --tags
 
-      # Étape 2 : Connexion à GitHub Container Registry
+      # Étape 2 : Connexion à GHCR (registre GitHub Container Registry)
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v2
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GHCR_PAT }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Étape 3 : Construire l'image Docker
+      # Étape 3 : Construire l'image Docker depuis le dépôt source
       - name: Build Docker image
         run: |
-          docker build -t ghcr.io/dextouu/superbin:latest .
+          cd source-repo
+          docker build -t ghcr.io/${{ github.repository_owner }}/superbin:latest .
 
       # Étape 4 : Pousser l'image vers GHCR
       - name: Push Docker image
         run: |
-          docker push ghcr.io/dextouu/superbin:latest
+          docker push ghcr.io/${{ github.repository_owner }}/superbin:latest
