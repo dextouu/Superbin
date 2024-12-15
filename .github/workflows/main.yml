@@ -1,3 +1,4 @@
+
 name: Build and Push Docker Image
 
 on:
@@ -8,7 +9,6 @@ on:
 permissions:
   contents: read       # Lire les fichiers nécessaires au build
   packages: write      # Publier l'image Docker sur GHCR
-  metadata: read       # Accéder aux informations publiques du dépôt
 
 env:
   REGISTRY: ghcr.io
@@ -49,8 +49,8 @@ jobs:
         with:
           context: .                           # Contexte de build (le répertoire courant)
           push: true                           # Pousser l'image après le build
-          tags: ${{ steps.Extract-metadata-for-Docker.outputs.tags }}
-          labels: ${{ steps.Extract-metadata-for-Docker.outputs.labels }}
+          tags: ${{ steps.Extract-metadata-for-Docker.outputs.tags }} # Tags générés
+          labels: ${{ steps.Extract-metadata-for-Docker.outputs.labels }} # Labels générés
 
       # Étape 6 : Tester le pull public
       - name: Test public Docker pull
