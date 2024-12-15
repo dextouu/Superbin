@@ -7,7 +7,6 @@ on:
 
 permissions:
   contents: write       # Nécessaire pour écrire dans ton dépôt
-  metadata: read        # Nécessaire pour accéder aux informations publiques du dépôt
 
 jobs:
   sync-repo:
