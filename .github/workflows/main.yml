@@ -1,4 +1,3 @@
-
 name: Build and Push Docker Image
 
 on:
@@ -29,7 +28,7 @@ jobs:
           git config --global user.email "actions@github.com"
           git config --global user.name "GitHub Actions"
 
-      # Étape 3 : Connexion à GitHub Container Registry
+      # Étape 3 : Connexion à GitHub Container Registry avec PAT
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v2
         with:
@@ -39,9 +38,19 @@ jobs:
 
       # Étape 4 : Extraire les métadonnées (tags et labels)
       - name: Extract metadata for Docker
+        id: meta
         uses: docker/metadata-action@v4
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=raw,value=latest
+          labels: |
+            org.opencontainers.image.title=${{ github.repository }}
+            org.opencontainers.image.description="Docker image automatically built and pushed from repository updates"
+            org.opencontainers.image.source=${{ github.repositoryUrl }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.created=${{ github.run_id }}
 
       # Étape 5 : Construire et pousser l'image Docker
       - name: Build and Push Docker Image
@@ -49,8 +58,8 @@ jobs:
         with:
           context: .                           # Contexte de build (le répertoire courant)
           push: true                           # Pousser l'image après le build
-          tags: ${{ steps.Extract-metadata-for-Docker.outputs.tags }} # Tags générés
-          labels: ${{ steps.Extract-metadata-for-Docker.outputs.labels }} # Labels générés
+          tags: ${{ steps.meta.outputs.tags }} # Tags générés
+          labels: ${{ steps.meta.outputs.labels }} # Labels générés
 
       # Étape 6 : Tester le pull public
       - name: Test public Docker pull
