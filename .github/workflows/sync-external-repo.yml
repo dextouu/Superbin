@@ -7,7 +7,7 @@ on:
 
 permissions:
   contents: write       # Nécessaire pour écrire dans ton dépôt
-      
+  
 
 jobs:
   sync-repo:
@@ -20,19 +20,25 @@ jobs:
         with:
           ref: main # Branche principale de ton dépôt
 
-      # Étape 2 : Ajouter le dépôt source comme remote
+      # Étape 2 : Configurer l'identité Git
+      - name: Configure Git Identity
+        run: |
+          git config --global user.email "actions@github.com"
+          git config --global user.name "GitHub Actions"
+
+      # Étape 3 : Ajouter le dépôt source comme remote
       - name: Add external repository as remote
         run: |
           git remote add upstream https://github.com/Th0rum/SuperBin.git || echo "Remote already exists"
           git fetch upstream
 
-      # Étape 3 : Fusionner les changements du dépôt source
+      # Étape 4 : Fusionner les changements du dépôt source
       - name: Merge changes from external repository
         run: |
           git merge upstream/main --allow-unrelated-histories -m "Merge updates from external repository"
           git push origin main
 
-      # Étape 4 : Debug - Vérifier les fichiers après synchronisation
+      # Étape 5 : Debug - Vérifier les fichiers après synchronisation
       - name: List updated files
         run: |
           echo "Liste des fichiers après synchronisation :"
