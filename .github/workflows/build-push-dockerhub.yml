@@ -48,4 +48,4 @@ jobs:
         with:
           context: .                           # Contexte de build (dossier courant)
           push: true                           # Pousser l'image après le build
-          tags: ${{ env.IMAGE_NAME }}:latest
+          tags: dextou/superbin:latest
