@@ -9,7 +9,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME: dextouu/superbin
 
 jobs:
   build-and-push-image:
@@ -26,7 +26,7 @@ jobs:
 
       # Étape 2 : Connexion à GitHub Container Registry
       - name: Log in to the Container registry
-        uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
+        uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -35,15 +35,15 @@ jobs:
       # Étape 3 : Extraction des métadonnées avec ajout de `latest`
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+        uses: docker/metadata-action@v4
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=raw,value=latest # Ajoute explicitement le tag `latest`
-            type=ref,event=branch # Tag basé sur le nom de la branche
-            type=sha              # Tag basé sur le SHA du commit
+            type=raw,value=latest          # Ajoute explicitement `latest`
+            type=ref,event=branch          # Ajoute un tag basé sur le nom de la branche
+            type=sha                       # Ajoute un tag basé sur le SHA du commit
 
-      # Étape 4 : Construire et pousser l'image Docker avec `latest`
+      # Étape 4 : Construire et pousser l'image Docker
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v5
         with:
@@ -51,6 +51,6 @@ jobs:
           push: true                               # Pousser l'image après le build
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-            ${{ steps.meta.outputs.tags }}         # Inclure aussi les autres tags générés
+            ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
